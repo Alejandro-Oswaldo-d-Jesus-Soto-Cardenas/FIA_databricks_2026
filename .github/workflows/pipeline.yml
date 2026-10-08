@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-connection:
+  test-databricks:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +22,38 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          echo "Verificando conexión con Databricks..."
+          echo "=========================================="
+          echo "1. Verificando conexión con Databricks"
+          echo "=========================================="
+
           databricks workspace list /
+
           echo "Conexión con Databricks realizada correctamente."
+
+      - name: Verify Databricks Volume
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "2. Verificando Databricks Volume"
+          echo "=========================================="
+
+          databricks fs ls dbfs:/Volumes/fia_databricks/datos/fia_volume/
+
+          echo "Volume accesible correctamente."
+
+      - name: Read test file from Volume
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "3. Leyendo archivo desde el Volume"
+          echo "=========================================="
+
+          databricks fs cat dbfs:/Volumes/fia_databricks/datos/fia_volume/datos_prueba.txt
+
+          echo "=========================================="
+          echo "Prueba completada correctamente."
+          echo "=========================================="

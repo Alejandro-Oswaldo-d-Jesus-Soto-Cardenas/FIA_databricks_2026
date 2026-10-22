@@ -7,9 +7,17 @@ on:
       - feature/s11-databricks-genie
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: databricks-sync-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sync-databricks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
@@ -22,32 +30,67 @@ jobs:
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
 
-      - name: Verify Databricks connection
+      - name: Verify required secrets
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [[ -z "$DATABRICKS_HOST" ]]; then
+            echo "::error::Falta configurar el secreto DATABRICKS_HOST."
+            exit 1
+          fi
+
+          if [[ -z "$DATABRICKS_TOKEN" ]]; then
+            echo "::error::Falta configurar el secreto DATABRICKS_TOKEN."
+            exit 1
+          fi
+
+          echo "Los secretos requeridos están configurados."
+
+      - name: Verify Databricks connection
+        shell: bash
+        run: |
+          set -euo pipefail
+
           echo "1. Verificando conexión con Databricks..."
           databricks workspace list /
           echo "Conexión correcta."
 
       - name: Verify Databricks Volume
+        shell: bash
         run: |
+          set -euo pipefail
+
           echo "2. Verificando Volume..."
-          databricks fs ls dbfs:/Volumes/fia_databricks/datos/fia_volume/
+          databricks fs ls \
+            dbfs:/Volumes/fia_databricks/datos/fia_volume/
           echo "Volume accesible."
 
       - name: Read test file from Volume
+        shell: bash
         run: |
+          set -euo pipefail
+
           echo "3. Leyendo archivo de prueba..."
-          databricks fs cat dbfs:/Volumes/fia_databricks/datos/fia_volume/datos_prueba.txt
+          databricks fs cat \
+            dbfs:/Volumes/fia_databricks/datos/fia_volume/datos_prueba.txt
           echo "Lectura completada."
 
-      - name: List Git Folders in Databricks
+      - name: Verify Git Folder
+        shell: bash
         run: |
-          echo "4. Consultando Git Folders..."
+          set -euo pipefail
+
+          echo "4. Verificando Git Folders..."
           databricks repos list
 
       - name: Update Databricks Git Folder
+        shell: bash
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
-          BRANCH="${GITHUB_REF#refs/heads/}"
+          set -euo pipefail
+
           REPO_PATH="/Users/alejandro.soto.cardenas@vallegrande.edu.pe/FIA_databricks_2026"
 
           echo "5. Actualizando Git Folder..."

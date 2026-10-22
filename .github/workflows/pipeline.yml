@@ -14,7 +14,6 @@ jobs:
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_EMAIL: ${{ secrets.DATABRICKS_EMAIL }}
 
     steps:
       - name: Checkout repository
@@ -25,28 +24,33 @@ jobs:
 
       - name: Verify Databricks connection
         run: |
+          echo "1. Verificando conexión con Databricks..."
           databricks workspace list /
-          echo "Conexion con Databricks correcta."
+          echo "Conexión correcta."
 
       - name: Verify Databricks Volume
         run: |
+          echo "2. Verificando Volume..."
           databricks fs ls dbfs:/Volumes/fia_databricks/datos/fia_volume/
-          echo "Volume accesible correctamente."
+          echo "Volume accesible."
 
       - name: Read test file from Volume
         run: |
+          echo "3. Leyendo archivo de prueba..."
           databricks fs cat dbfs:/Volumes/fia_databricks/datos/fia_volume/datos_prueba.txt
+          echo "Lectura completada."
 
       - name: List Git Folders in Databricks
         run: |
+          echo "4. Consultando Git Folders..."
           databricks repos list
 
       - name: Update Databricks Git Folder
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
-          REPO_PATH="/Users/${DATABRICKS_EMAIL}/FIA_databricks_2026"
+          REPO_PATH="/Users/alejandro.soto.cardenas@vallegrande.edu.pe/FIA_databricks_2026"
 
-          echo "Actualizando Git Folder..."
+          echo "5. Actualizando Git Folder..."
           echo "Rama: $BRANCH"
           echo "Ruta: $REPO_PATH"
 
